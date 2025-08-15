@@ -34,10 +34,29 @@ jobs:
         pyenv global 2.7.18
         echo "$HOME/.pyenv/shims" >> $GITHUB_PATH
         
-    - name: Verify Python 2.7
+    - name: Install build dependencies
+      run: |
+        # Install NASM (required for BaseLib assembly code)
+        brew install nasm
+        # Install mtoc (Mach-O to COFF converter for EDK II)
+        brew install mtoc
+        # Install ACPICA tools (ACPI compiler for EDK II)
+        brew install acpica
+        # Verify installations
+        nasm -v
+        mtoc --version
+        iasl -v
+        
+    - name: Verify Python 2.7 and build tools
       run: |
         python --version
         which python
+        nasm -v
+        which nasm
+        mtoc --version
+        which mtoc
+        iasl -v
+        which iasl
         
     - name: Apply build patches
       run: |
