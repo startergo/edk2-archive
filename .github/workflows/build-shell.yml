@@ -42,6 +42,11 @@ jobs:
         brew install mtoc
         # Install ACPICA tools (ACPI compiler for EDK II)
         brew install acpica
+        # Create symlinks for tools in expected locations
+        sudo mkdir -p /usr/local/bin
+        sudo ln -sf /opt/homebrew/bin/mtoc /usr/local/bin/mtoc
+        sudo ln -sf /opt/homebrew/bin/nasm /usr/local/bin/nasm
+        sudo ln -sf /opt/homebrew/bin/iasl /usr/local/bin/iasl
         # Verify installations
         nasm -v
         mtoc 2>&1 | head -1 || echo "mtoc installed (exit code expected)"
@@ -54,6 +59,7 @@ jobs:
         nasm -v
         which nasm
         echo "mtoc available at: $(which mtoc)"
+        ls -la /usr/local/bin/mtoc
         which iasl
         iasl -v
         
