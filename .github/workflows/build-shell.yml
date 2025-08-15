@@ -1,0 +1,221 @@
+name: Build EDK II Shell for macOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag name'
+        required: true
+        default: 'v1.0.0'
+        type: string
+      release_name:
+        description: 'Release name'
+        required: true
+        default: 'EDK II Shell Build'
+        type: string
+
+jobs:
+  build-shell:
+    runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        build_type: [DEBUG, RELEASE, NOOPT]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python 2.7
+      run: |
+        # Install Python 2.7 via pyenv since it's not available by default on newer macOS
+        brew install pyenv
+        pyenv install 2.7.18
+        pyenv global 2.7.18
+        echo "$HOME/.pyenv/shims" >> $GITHUB_PATH
+        
+    - name: Verify Python 2.7
+      run: |
+        python --version
+        which python
+        
+    - name: Apply build patches
+      run: |
+        chmod +x ./reset_and_patch.sh
+        ./reset_and_patch.sh
+        
+    - name: Setup EDK II environment
+      run: |
+        source edksetup.sh
+        echo "EDK_TOOLS_PATH=$EDK_TOOLS_PATH" >> $GITHUB_ENV
+        echo "WORKSPACE=$WORKSPACE" >> $GITHUB_ENV
+        echo "CONF_PATH=$CONF_PATH" >> $GITHUB_ENV
+        
+    - name: Build Shell (${{ matrix.build_type }})
+      run: |
+        export PATH="$HOME/.pyenv/shims:$PATH"
+        source edksetup.sh
+        build -a X64 -t XCODE5 -b ${{ matrix.build_type }} -p ShellPkg/ShellPkg.dsc
+        
+    - name: Verify build output
+      run: |
+        BUILD_DIR="Build/Shell/${{ matrix.build_type }}_XCODE5/X64"
+        if [ -f "$BUILD_DIR/Shell.efi" ]; then
+          echo "✅ Shell.efi built successfully"
+          ls -la "$BUILD_DIR/Shell.efi"
+          file "$BUILD_DIR/Shell.efi"
+        else
+          echo "❌ Shell.efi not found in $BUILD_DIR"
+          find Build/ -name "Shell.efi" -type f || echo "No Shell.efi found anywhere"
+          exit 1
+        fi
+        
+    - name: Prepare artifacts
+      run: |
+        mkdir -p artifacts
+        BUILD_DIR="Build/Shell/${{ matrix.build_type }}_XCODE5/X64"
+        cp "$BUILD_DIR/Shell.efi" "artifacts/ClassicShell-${{ matrix.build_type }}.efi"
+        
+        # Create build info
+        cat > "artifacts/ClassicShell-${{ matrix.build_type }}-info.txt" << EOF
+        EDK II Classic Shell Build Information
+        ======================================
+        
+        Build Type: ${{ matrix.build_type }}
+        Target Architecture: X64
+        Toolchain: XCODE5
+        Build Date: $(date)
+        Commit: ${{ github.sha }}
+        
+        File Details:
+        $(ls -la "artifacts/ClassicShell-${{ matrix.build_type }}.efi")
+        $(file "artifacts/ClassicShell-${{ matrix.build_type }}.efi")
+        
+        Usage:
+        - Copy ClassicShell-${{ matrix.build_type }}.efi to your UEFI system
+        - Rename to Shell.efi if needed
+        - Compatible with X64 UEFI environments
+        - This is the legacy EDK II Shell from the archive
+        EOF
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: classicshell-${{ matrix.build_type }}-efi
+        path: artifacts/
+        retention-days: 30
+
+  create-release:
+    needs: build-shell
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release-artifacts
+        
+    - name: Organize release files
+      run: |
+        mkdir -p release
+        
+        # Move all EFI files and info to release directory
+        find release-artifacts/ -name "*.efi" -exec cp {} release/ \;
+        find release-artifacts/ -name "*-info.txt" -exec cp {} release/ \;
+        
+        # Create combined info file
+        cat > release/README.txt << EOF
+        EDK II Classic Shell Build Release
+        ===================================
+        
+        This release contains EDK II Classic Shell builds for X64 architecture built on macOS with Apple Silicon compatibility.
+        
+        Files included:
+        - ClassicShell-DEBUG.efi   - Debug build with symbols and debug output
+        - ClassicShell-RELEASE.efi - Optimized release build (recommended for production)
+        - ClassicShell-NOOPT.efi   - Unoptimized build for debugging
+        - Individual info files for each build
+        
+        About Classic Shell:
+        This is the legacy EDK II Shell from the tianocore/edk2-archive repository.
+        It differs from the modern UEFI Shell in edk2 main branch and provides
+        compatibility with older UEFI implementations and legacy features.
+        
+        Build Information:
+        - Built from commit: ${{ github.sha }}
+        - Build date: $(date)
+        - Target: X64 UEFI systems
+        - Toolchain: XCODE5 (clang-based)
+        
+        Usage:
+        1. Copy the desired ClassicShell-*.efi file to your UEFI system
+        2. Rename to Shell.efi if required by your system
+        3. Place in appropriate UEFI boot directory (usually EFI/BOOT/ or EFI/Shell/)
+        
+        Compatibility:
+        - UEFI 2.x compliant systems
+        - X64 (x86_64) architecture
+        - Physical hardware and virtual machines
+        - Legacy UEFI implementations
+        
+        Build System:
+        - Built on macOS with Apple Silicon compatibility patches
+        - Uses Python 2.7 for legacy EDK II build system
+        - Includes fixes for cross-compilation and compiler warnings
+        
+        Repository: https://github.com/startergo/edk2-archive
+        EOF
+        
+        # List files
+        echo "Release contents:"
+        ls -la release/
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.release_tag }}
+        name: ${{ github.event.inputs.release_name }}
+        body: |
+          # EDK II Classic Shell Build Release
+          
+          This release contains EDK II Classic Shell builds for X64 architecture, built on macOS with Apple Silicon compatibility.
+          
+          ## About Classic Shell
+          
+          This is the **legacy EDK II Shell** from the `tianocore/edk2-archive` repository. It differs from the modern UEFI Shell in the main edk2 branch and provides compatibility with older UEFI implementations and legacy features.
+          
+          ## Files
+          
+          - **ClassicShell-DEBUG.efi** - Debug build with symbols and debug output
+          - **ClassicShell-RELEASE.efi** - Optimized release build (recommended for production)  
+          - **ClassicShell-NOOPT.efi** - Unoptimized build for debugging
+          
+          ## Usage
+          
+          1. Download the desired ClassicShell-*.efi file
+          2. Copy to your UEFI system's boot directory
+          3. Rename to `Shell.efi` if required
+          
+          ## Compatibility
+          
+          - UEFI 2.x compliant systems
+          - X64 (x86_64) architecture only
+          - Physical hardware and virtual machines
+          - Legacy UEFI implementations
+          
+          ## Build Information
+          
+          - **Commit**: ${{ github.sha }}
+          - **Build Date**: ${{ github.run_id }}
+          - **Toolchain**: XCODE5 (clang-based)
+          - **Python**: 2.7 (legacy requirement)
+          
+          Built using the enhanced build system with Apple Silicon compatibility patches.
+          
+        files: release/*
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
