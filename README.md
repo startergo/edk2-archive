@@ -34,7 +34,6 @@ build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
 - **`BUILD_PATCHES_DOCUMENTATION.md`** - Detailed documentation of all patches
 - **`reset_and_patch.sh`** ✅ - **Recommended**: Complete reset and patch workflow
 - **`apply_build_patches_simple.sh`** - Simple patch application (for clean files)
-- **`apply_build_patches.sh`** - Legacy automated patch script (may have issues)
 - **`validate_patches.sh`** - Validation script to verify patches are applied
 - **`README.md`** - This file
 
@@ -50,12 +49,6 @@ build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
 ```bash
 # Only works if files are in original (unpatched) state
 ./apply_build_patches_simple.sh
-```
-
-### Option 3: Legacy Automated Patches
-```bash
-# May have Python compatibility issues
-./apply_build_patches.sh
 ```
 
 ### Validate Patches (Optional)
