@@ -15,13 +15,13 @@
 # Import Modules
 #
 import re
-import DataType
+from . import DataType
 import Common.LongFilePathOs as os
 import string
-import EdkLogger as EdkLogger
+from . import EdkLogger as EdkLogger
 
-import GlobalData
-from BuildToolError import *
+from . import GlobalData
+from .BuildToolError import *
 from CommonDataClass.Exceptions import *
 from Common.LongFilePathSupport import OpenLongFilePath as open
 from Common.MultipleWorkspace import MultipleWorkspace as mws
@@ -797,9 +797,15 @@ def GetHelpTextList(HelpTextClassList):
 
     return List
 
+# Handle Unicode for both Python 2 and 3
+try:
+    unicode_type = unicode
+except NameError:
+    unicode_type = str
+
 def StringToArray(String):
-    if isinstance(String, unicode):
-        if len(unicode) == 0:
+    if isinstance(String, unicode_type):
+        if len(String) == 0:
             return "{0x00, 0x00}"
         return "{%s, 0x00, 0x00}" % ", ".join(["0x%02x, 0x00" % ord(C) for C in String])
     elif String.startswith('L"'):

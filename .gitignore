@@ -1,2 +1,44 @@
+# EDK II Build Artifacts
 Build/
+*.efi
+*.lib
+*.obj
+*.dll
+*.map
+*.pdb
+
+# Generated Configuration Files
+Conf/build_rule.txt
+Conf/target.txt
+Conf/tools_def.txt
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backup Files
+*.bak
+*.orig
+*.swp
+*.tmp
+
+# Editor Files
+.vscode/
+.idea/
+*.sublime-*
+
+# Compiled BaseTools
+BaseTools/Source/C/bin/
+BaseTools/BinWrappers/PosixLike/
+
+# Log Files
+*.log
+
+# Original ignore entries
 tags/

@@ -17,23 +17,36 @@
 import Common.LongFilePathOs as os
 import sys
 import string
-import thread
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 import threading
 import time
 import re
-import cPickle
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 import array
 import shutil
 from struct import pack
-from UserDict import IterableUserDict
-from UserList import UserList
+try:
+    from UserDict import IterableUserDict
+except ImportError:
+    from collections import UserDict
+    IterableUserDict = UserDict
+try:
+    from UserList import UserList
+except ImportError:
+    from collections import UserList
 
 from Common import EdkLogger as EdkLogger
 from Common import GlobalData as GlobalData
-from DataType import *
-from BuildToolError import *
+from .DataType import *
+from .BuildToolError import *
 from CommonDataClass.DataClass import *
-from Parsing import GetSplitValueList
+from .Parsing import GetSplitValueList
 from Common.LongFilePathSupport import OpenLongFilePath as open
 from Common.MultipleWorkspace import MultipleWorkspace as mws
 
@@ -493,7 +506,7 @@ def SaveFileOnChange(File, Content, IsBinaryFile=True):
             Fd = open(File, "wb")
             Fd.write(Content)
             Fd.close()
-    except IOError, X:
+    except IOError as X:
         EdkLogger.error(None, FILE_CREATE_FAILURE, ExtraData='IOError %s' % X)
 
     return True
@@ -527,7 +540,7 @@ def DataRestore(File):
     try:
         Fd = open(File, 'rb')
         Data = cPickle.load(Fd)
-    except Exception, e:
+    except Exception as e:
         EdkLogger.verbose("Failed to load [%s]\n\t%s" % (File, str(e)))
         Data = None
     finally:
@@ -1630,7 +1643,7 @@ def CheckPcdDatum(Type, Value):
                           ", FALSE, False, false, 0x0, 0x00, 0" % (Value, Type)
     elif Type in [TAB_UINT8, TAB_UINT16, TAB_UINT32, TAB_UINT64]:
         try:
-            Value = long(Value, 0)
+            Value = int(Value, 0)
         except:
             return False, "Invalid value [%s] of type [%s];"\
                           " must be a hexadecimal, decimal or octal in C language format." % (Value, Type)
@@ -1671,7 +1684,7 @@ def SplitOption(OptionString):
 def CommonPath(PathList):
     P1 = min(PathList).split(os.path.sep)
     P2 = max(PathList).split(os.path.sep)
-    for Index in xrange(min(len(P1), len(P2))):
+    for Index in range(min(len(P1), len(P2))):
         if P1[Index] != P2[Index]:
             return os.path.sep.join(P1[:Index])
     return os.path.sep.join(P1)

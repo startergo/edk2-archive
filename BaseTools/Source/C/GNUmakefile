@@ -28,6 +28,9 @@ ifndef ARCH
   ifneq (,$(findstring aarch64,$(uname_m)))
     ARCH=AARCH64
   endif
+  ifneq (,$(strip $(filter $(uname_m), arm64)))
+    ARCH=AARCH64
+  endif
   ifneq (,$(findstring arm,$(uname_m)))
     ARCH=ARM
   endif

@@ -14,7 +14,7 @@
 ## Import modules
 import Common.LongFilePathOs as os, sys, logging
 import traceback
-from  BuildToolError import *
+from .BuildToolError import *
 
 ## Log level constants
 DEBUG_0 = 1

@@ -18,7 +18,10 @@
 #
 import Common.LongFilePathOs as os
 import re
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import sys
 import glob
 import time
@@ -525,7 +528,7 @@ class BuildTask:
                 EdkLogger.debug(EdkLogger.DEBUG_8, "Threads [%s]" % ", ".join([Th.getName() for Th in threading.enumerate()]))
                 # avoid tense loop
                 time.sleep(0.1)
-        except BaseException, X:
+        except BaseException as X:
             #
             # TRICK: hide the output of threads left runing, so that the user can
             #        catch the error message easily
@@ -949,7 +952,7 @@ class Build():
         # run
         if Target == 'run':
             RunDir = os.path.normpath(os.path.join(AutoGenObject.BuildDir, GlobalData.gGlobalDefines['ARCH']))
-            Command = '.\SecMain'
+            Command = r'.\SecMain'
             os.chdir(RunDir)
             LaunchCommand(Command, RunDir)
             return True
@@ -1007,7 +1010,7 @@ class Build():
             try:
                 #os.rmdir(AutoGenObject.BuildDir)
                 RemoveDirectory(AutoGenObject.BuildDir, True)
-            except WindowsError, X:
+            except OSError as X:
                 EdkLogger.error("build", FILE_DELETE_FAILURE, ExtraData=str(X))
         return True
 
@@ -1080,7 +1083,7 @@ class Build():
         # run
         if Target == 'run':
             RunDir = os.path.normpath(os.path.join(AutoGenObject.BuildDir, GlobalData.gGlobalDefines['ARCH']))
-            Command = '.\SecMain'
+            Command = r'.\SecMain'
             os.chdir(RunDir)
             LaunchCommand(Command, RunDir)
             return True
@@ -1097,7 +1100,7 @@ class Build():
             try:
                 #os.rmdir(AutoGenObject.BuildDir)
                 RemoveDirectory(AutoGenObject.BuildDir, True)
-            except WindowsError, X:
+            except OSError as X:
                 EdkLogger.error("build", FILE_DELETE_FAILURE, ExtraData=str(X))
         return True
 
@@ -1208,7 +1211,7 @@ class Build():
         if self.Fdf:
             # First get the XIP base address for FV map file.
             GuidPattern = re.compile("[-a-fA-F0-9]+")
-            GuidName = re.compile("\(GUID=[-a-fA-F0-9]+")
+            GuidName = re.compile(r"\(GUID=[-a-fA-F0-9]+")
             for FvName in Wa.FdfProfile.FvDict.keys():
                 FvMapBuffer = os.path.join(Wa.FvDir, FvName + '.Fv.map')
                 if not os.path.exists(FvMapBuffer):
@@ -2054,14 +2057,14 @@ def Main():
         # All job done, no error found and no exception raised
         #
         BuildError = False
-    except FatalError, X:
+    except FatalError as X:
         if MyBuild != None:
             # for multi-thread build exits safely
             MyBuild.Relinquish()
         if Option != None and Option.debug != None:
             EdkLogger.quiet("(Python %s on %s) " % (platform.python_version(), sys.platform) + traceback.format_exc())
         ReturnCode = X.args[0]
-    except Warning, X:
+    except Warning as X:
         # error from Fdf parser
         if MyBuild != None:
             # for multi-thread build exits safely

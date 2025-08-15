@@ -14,9 +14,9 @@
 ##
 # Import Modules
 #
-from String import *
+from .String import *
 from CommonDataClass.DataClass import *
-from DataType import *
+from .DataType import *
 
 ## ParseDefineMacro
 #
