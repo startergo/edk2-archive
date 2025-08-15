@@ -47,6 +47,50 @@ else
     ERRORS=$((ERRORS + 1))
 fi
 
+# Check for Python syntax errors
+echo "🔍 Checking Python syntax..."
+PYTHON_ERRORS=0
+
+# Check for common syntax errors
+if grep -q "from \. from \." BaseTools/Source/Python/Common/LongFilePathOs.py 2>/dev/null; then
+    echo "❌ LongFilePathOs.py has duplicate import syntax error"
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
+if grep -q "from \. from \." BaseTools/Source/Python/Common/String.py 2>/dev/null; then
+    echo "❌ String.py has duplicate import syntax error"  
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
+# Try to check syntax without importing (since relative imports need package context)
+if python -m py_compile BaseTools/Source/Python/Common/LongFilePathOs.py 2>/dev/null; then
+    echo "✅ LongFilePathOs.py syntax OK"
+else
+    echo "❌ LongFilePathOs.py has syntax errors"
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
+if python -m py_compile BaseTools/Source/Python/Common/String.py 2>/dev/null; then
+    echo "✅ String.py syntax OK"
+else
+    echo "❌ String.py has syntax errors"
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
+if python -m py_compile BaseTools/Source/Python/Common/Misc.py 2>/dev/null; then
+    echo "✅ Misc.py syntax OK"
+else
+    echo "❌ Misc.py has syntax errors"
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
+if [ $PYTHON_ERRORS -gt 0 ]; then
+    echo "❌ $PYTHON_ERRORS Python syntax errors found"
+    ERRORS=$((ERRORS + PYTHON_ERRORS))
+else
+    echo "✅ Python syntax validation passed"
+fi
+
 # Check compiler flags (if tools_def.txt exists)
 if [ -f "Conf/tools_def.txt" ]; then
     if grep -q "Wno-pointer-compare" Conf/tools_def.txt; then

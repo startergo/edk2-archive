@@ -162,6 +162,37 @@ The following files need to be patched to build EDK II ShellPkg successfully:
 - `BaseTools/Source/Python/UPT/Core/FileHook.py`
 - `BaseTools/Source/Python/build/build.py`
 
+### **CRITICAL: Python Syntax Error Fixes**
+
+During the build process, you may encounter Python syntax errors from corrupted imports. These need manual fixing:
+
+#### BaseTools/Source/Python/Common/LongFilePathOs.py
+**Error**: `from . from . import LongFilePathOsPath` (duplicate "from .")
+**Fix**: Ensure it's `from . import LongFilePathOsPath`
+
+#### BaseTools/Source/Python/Common/String.py  
+**Error**: Multiple `from . from . import` statements
+**Fix**: Remove duplicates, ensure clean relative imports:
+```python
+from . import DataType
+from . import EdkLogger as EdkLogger  
+from . import GlobalData
+```
+
+#### BaseTools/Source/Python/Common/Misc.py
+**Error**: Corrupted try/except blocks with wrong indentation
+**Fix**: Clean up the import section:
+```python
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
+```
+
 ---
 
 ## 6. XCODE5 Toolchain Compiler Flags
@@ -179,6 +210,8 @@ The following files need to be patched to build EDK II ShellPkg successfully:
 - Line 7145: `DEBUG_XCODE5_X64_CC_FLAGS`
 - Line 7146: `NOOPT_XCODE5_X64_CC_FLAGS` 
 - Line 7147: `RELEASE_XCODE5_X64_CC_FLAGS`
+
+**Note**: The `tools_def.txt` file is regenerated each time you run `source edksetup.sh`, so you may need to re-apply the compiler flag patches if you regenerate the configuration files.
 
 **Example**:
 ```
@@ -229,6 +262,25 @@ RELEASE_XCODE5_X64_CC_FLAGS = -target x86_64-pc-win32-macho -c -Os -Wall -Werror
 - Modern EDK II versions may have different requirements
 - The XCODE5 toolchain is the recommended choice for macOS builds
 - Python 2.7 is **mandatory** for this version of EDK II BaseTools
+
+## Build Variations
+
+### Debug Build
+```bash
+build -a X64 -t XCODE5 -b DEBUG -p ShellPkg/ShellPkg.dsc
+```
+
+### No Optimization Build  
+```bash
+build -a X64 -t XCODE5 -b NOOPT -p ShellPkg/ShellPkg.dsc
+```
+
+### Release Build (Default)
+```bash
+build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
+```
+
+**All three build targets are fully supported with these patches.**
 
 ## Script Creation
 

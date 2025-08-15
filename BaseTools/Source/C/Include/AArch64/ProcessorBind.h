@@ -62,7 +62,9 @@
   typedef signed char         INT8;
 
   #ifndef UINT8_MAX
+  #ifndef UINT8_MAX
   #define UINT8_MAX 0xff
+  #endif
   #endif
 #endif
 

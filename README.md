@@ -83,12 +83,14 @@ build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
 - Updates relative imports for Python 3 compatibility
 - Maintains Python 2.7 fallback support
 - Fixes octal literal syntax
+- **Handles Python syntax corruption** from manual edits
 
 ### 4. **XCODE5 Toolchain**
-- Suppresses strict compiler warnings:
+- Suppresses strict compiler warnings for **all build types**:
   - `-Wno-unused-but-set-variable`
   - `-Wno-varargs` 
   - `-Wno-pointer-compare`
+- **Supports DEBUG, RELEASE, and NOOPT builds**
 
 ## Troubleshooting
 
