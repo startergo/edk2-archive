@@ -101,11 +101,10 @@ Once files are patched, applying patches again can fail. The reset script solves
 - Corrects bitwise alignment operations
 - Resolves pointer comparison warnings
 
-### 3. **Python 2/3 Compatibility**
-- Updates relative imports for Python 3 compatibility
-- Maintains Python 2.7 fallback support
-- Fixes octal literal syntax
-- **Handles Python syntax corruption** from manual edits
+### 3. **Python 2.7 Environment**
+- Uses Python 2.7 for legacy EDK II build system compatibility
+- Avoids Python 3 syntax issues entirely by using the original Python version
+- Ensures all build scripts work with the expected Python environment
 
 ### 4. **XCODE5 Toolchain**
 - Suppresses strict compiler warnings for **all build types**:
