@@ -21,9 +21,9 @@ brew install python@2
 ### One-Command Build
 ```bash
 # Clone and build in one go
-git clone https://github.com/tianocore/edk2-archive.git
+git clone https://github.com/startergo/edk2-archive.git
 cd edk2-archive
-./apply_build_patches.sh
+./reset_and_patch.sh  # ✅ Recommended: Works from any state
 export PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:$PATH"
 source edksetup.sh
 build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
@@ -32,32 +32,61 @@ build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
 ## Files Included
 
 - **`BUILD_PATCHES_DOCUMENTATION.md`** - Detailed documentation of all patches
-- **`apply_build_patches.sh`** - Automated patch application script  
+- **`reset_and_patch.sh`** ✅ - **Recommended**: Complete reset and patch workflow
+- **`apply_build_patches_simple.sh`** - Simple patch application (for clean files)
+- **`apply_build_patches.sh`** - Legacy automated patch script (may have issues)
 - **`validate_patches.sh`** - Validation script to verify patches are applied
 - **`README.md`** - This file
 
 ## Build Process
 
-### 1. Apply Patches
+### Option 1: Complete Reset and Build (Recommended)
 ```bash
+# Works from any state - resets files and applies fresh patches
+./reset_and_patch.sh
+```
+
+### Option 2: Apply Patches to Clean Files Only
+```bash
+# Only works if files are in original (unpatched) state
+./apply_build_patches_simple.sh
+```
+
+### Option 3: Legacy Automated Patches
+```bash
+# May have Python compatibility issues
 ./apply_build_patches.sh
 ```
 
-### 2. Validate Patches (Optional)
+### Validate Patches (Optional)
 ```bash
 ./validate_patches.sh
 ```
 
-### 3. Set Environment
+### Set Environment and Build
 ```bash
 export PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:$PATH"
 source edksetup.sh
-```
-
-### 4. Build ShellPkg
-```bash
 build -a X64 -t XCODE5 -b RELEASE -p ShellPkg/ShellPkg.dsc
 ```
+
+## Workflow Scripts Explained
+
+### `reset_and_patch.sh` ✅ **Recommended**
+- **Use When**: Any time you want a clean build
+- **What It Does**: 
+  - Resets all files to original state using `git checkout`
+  - Cleans build artifacts (`rm -rf Build/` and `Conf/.cache`)
+  - Applies fresh patches automatically
+- **Advantage**: Works regardless of current file state (patched/unpatched/corrupted)
+
+### `apply_build_patches_simple.sh`
+- **Use When**: First-time setup with clean (original) files
+- **What It Does**: Applies only essential patches without complex Python fixes
+- **Limitation**: Won't work if files are already patched
+
+### Why Multiple Scripts?
+Once files are patched, applying patches again can fail. The reset script solves this by restoring originals first, ensuring reliable builds every time.
 
 ## Build Output
 
