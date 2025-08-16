@@ -85,7 +85,25 @@ else
     echo "⚠️ tools_def.txt not found or XCODE5 flags not present"
 fi
 
-echo "8. Building BaseTools..."
+echo "8. Patching ShellPkg.dsc to set different debug masks for build types..."
+# Create a backup
+cp ShellPkg/ShellPkg.dsc ShellPkg/ShellPkg.dsc.orig
+
+# Replace the fixed PcdDebugPropertyMask with conditional values
+sed -i.bak 's/gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0xFF/!if $(TARGET) == DEBUG\
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x2F\
+!elseif $(TARGET) == NOOPT\
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x07\
+!else\
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x00\
+!endif/' ShellPkg/ShellPkg.dsc
+
+echo "✅ ShellPkg.dsc patched with build-specific debug masks:"
+echo "   - DEBUG: 0x2F (assert+print+code+clear+deadloop)"
+echo "   - NOOPT: 0x07 (assert+print+code only)"
+echo "   - RELEASE: 0x00 (no debug features)"
+
+echo "9. Building BaseTools..."
 make -C BaseTools/Source/C
 
 echo ""
