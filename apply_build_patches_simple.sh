@@ -64,11 +64,23 @@ export PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:$PATH"
 source edksetup.sh
 
 echo "7. Patching XCODE5 compiler flags in tools_def.txt..."
-if grep -q "XCODE5_X64_CC_FLAGS" Conf/tools_def.txt; then
-    # Add warning suppression flags for XCODE5
-    sed -i.bak 's/XCODE5_X64_CC_FLAGS.*$/& -Wno-unused-but-set-variable -Wno-varargs -Wno-pointer-compare/' Conf/tools_def.txt
-    sed -i.bak2 's/XCODE5_IA32_CC_FLAGS.*$/& -Wno-unused-but-set-variable -Wno-varargs -Wno-pointer-compare/' Conf/tools_def.txt
-    echo "✅ XCODE5 compiler flags updated for DEBUG, NOOPT, and RELEASE builds"
+if grep -q "DEBUG_XCODE5_X64_CC_FLAGS" Conf/tools_def.txt; then
+    # Fix DEBUG build to use no optimization instead of size optimization
+    sed -i.bak 's/DEBUG_XCODE5_X64_CC_FLAGS.*-Os/DEBUG_XCODE5_X64_CC_FLAGS   = -target x86_64-pc-win32-macho -c -g -O0/' Conf/tools_def.txt
+    
+    # Add debug defines to enable debug output properly
+    sed -i.bak2 's/DEBUG_XCODE5_X64_CC_FLAGS.*$/& -DDEBUG_ASSERT_ENABLED=TRUE -DDEBUG_PRINT_ENABLED=TRUE -DDEBUG_CODE_ENABLED=TRUE/' Conf/tools_def.txt
+    
+    # Add warning suppression flags for all build types
+    sed -i.bak3 's/DEBUG_XCODE5_X64_CC_FLAGS.*$/& -Wno-unused-but-set-variable -Wno-varargs -Wno-pointer-compare/' Conf/tools_def.txt
+    sed -i.bak4 's/NOOPT_XCODE5_X64_CC_FLAGS.*$/& -Wno-unused-but-set-variable -Wno-varargs -Wno-pointer-compare/' Conf/tools_def.txt
+    sed -i.bak5 's/RELEASE_XCODE5_X64_CC_FLAGS.*$/& -Wno-unused-but-set-variable -Wno-varargs -Wno-pointer-compare/' Conf/tools_def.txt
+    
+    echo "✅ XCODE5 compiler flags updated:"
+    echo "   - DEBUG: No optimization (-O0) + debug defines enabled"
+    echo "   - NOOPT: No optimization (-O0)"  
+    echo "   - RELEASE: Size optimization (-Os)"
+    echo "   - All: Warning suppressions added"
 else
     echo "⚠️ tools_def.txt not found or XCODE5 flags not present"
 fi
