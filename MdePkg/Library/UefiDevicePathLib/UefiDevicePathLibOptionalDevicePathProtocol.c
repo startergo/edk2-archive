@@ -54,9 +54,12 @@ UefiDevicePathLibOptionalDevicePathProtocolConstructor (
                   NULL,
                   (VOID**) &mDevicePathLibDevicePathUtilities
                   );
-  ASSERT_EFI_ERROR (Status);
-  ASSERT (mDevicePathLibDevicePathUtilities != NULL);
-  return Status;
+  // Note: This is an optional protocol, so we don't assert on failure
+  // ASSERT_EFI_ERROR (Status);
+  // ASSERT (mDevicePathLibDevicePathUtilities != NULL);
+  
+  // Always return success as documented, even if protocol is not found
+  return EFI_SUCCESS;
 }
 
 /**
