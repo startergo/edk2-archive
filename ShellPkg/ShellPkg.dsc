@@ -66,9 +66,13 @@
   NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
 
 [PcdsFixedAtBuild]
-!if $(TARGET) == DEBUG
+  # Build-specific debug property masks for meaningful differentiation
+  # DEBUG: All debug features for maximum debugging capability
+  # NOOPT: Basic debug features without performance overhead  
+  # RELEASE: No debug features for production use
+!if $(TARGET) == "DEBUG"
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x2F
-!elseif $(TARGET) == NOOPT  
+!elseif $(TARGET) == "NOOPT"  
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x07
 !else
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x00
