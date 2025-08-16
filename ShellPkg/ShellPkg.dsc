@@ -66,13 +66,18 @@
   NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
 
 [PcdsFixedAtBuild]
-  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0xFF
+!if $(TARGET) == DEBUG
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x2F
+!elseif $(TARGET) == NOOPT  
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x07
+!else
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x00
+!endif
   gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   gEfiMdePkgTokenSpaceGuid.PcdUefiLibMaxPrintBufferSize|16000
 !ifdef $(NO_SHELL_PROFILES)
   gEfiShellPkgTokenSpaceGuid.PcdShellProfileMask|0x00
 !endif #$(NO_SHELL_PROFILES)
-
 [Components]
   #
   # Build all the libraries when building this package.
